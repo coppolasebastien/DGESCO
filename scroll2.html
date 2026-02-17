@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission ChlorISS - Décollage Réel</title>
+    <style>
+        :root {
+            --space-bg: #020408;
+            --thruster-blue: #4da6ff;
+            --thruster-orange: #ff6600;
+            --nature-green: #4ade80;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--space-bg);
+            color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow-x: hidden;
+            height: 600vh; 
+        }
+
+        /* --- DÉCORS FIXES --- */
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(1px 1px at 25% 15%, white, transparent),
+                radial-gradient(1px 1px at 50% 40%, white, transparent),
+                radial-gradient(2px 2px at 75% 70%, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1px 1px at 10% 85%, white, transparent);
+            background-size: 300px 300px;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .earth-horizon {
+            position: fixed;
+            bottom: -10vh;
+            left: -50%;
+            width: 200%;
+            height: 80vh;
+            background: radial-gradient(circle at 50% 100%, #1a2a6c 0%, #000 75%);
+            border-radius: 50% 50% 0 0;
+            box-shadow: 0 -20px 80px rgba(66, 135, 245, 0.4);
+            z-index: 1;
+        }
+
+        .iss-station {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px; 
+            z-index: 5;
+            opacity: 0;
+            will-change: transform, opacity;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .iss-station img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+        }
+
+        /* --- LA FUSÉE --- */
+
+        .rocket-world {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 5vh;
+        }
+
+        .rocket-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            will-change: transform;
+            transform-origin: 50% 185px; 
+        }
+
+        .rocket-body {
+            width: 70px;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+        }
+
+        .flame {
+            width: 35px;
+            height: 0px;
+            background: linear-gradient(to bottom, #fff, var(--thruster-blue), var(--thruster-orange), transparent);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 50% 85%, 0% 100%);
+            opacity: 0;
+        }
+
+        @keyframes flicker {
+            from { transform: scaleX(0.9); opacity: 0.8; }
+            to { transform: scaleX(1.1); opacity: 1; }
+        }
+
+        .flame.active {
+            animation: flicker 0.1s infinite alternate;
+        }
+
+        /* --- IMAGE FINALE --- */
+        .final-image-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            z-index: 30;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            width: 300px;
+            height: 300px;
+            border: none;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 0 60px rgba(255, 255, 255, 0.3);
+        }
+
+        .final-image-container img {
+            width: 100%;
+            height: 100%;
+            scale: 1.25;
+            display: block;
+            object-fit: cover;
+        }
+
+        .content {
+            position: relative;
+            z-index: 20;
+        }
+
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 10%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 750px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #fff, var(--nature-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p { line-height: 1.7; color: #e0e0e0; font-size: 1.05rem; }
+        a {
+            color: var(--nature-green);
+            text-decoration: none;
+            border-bottom: 1px dotted var(--nature-green);
+        }
+        a:hover { border-bottom-style: solid; }
+        ul { color: #ccc; line-height: 1.6; padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        
+        .alert {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(250, 204, 21, 0.2);
+            font-size: 0.95rem;
+            border-radius: 4px;
+        }
+        
+        .plant-name {
+            color: var(--nature-green);
+            font-weight: 600;
+            position: relative;
+            cursor: help;
+            display: inline-block;
+        }
+
+        .plant-image-preview {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 150px;
+            border: 2px solid white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            background-color: #222;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0s 0.3s;
+            pointer-events: none;
+            z-index: 200;
+            object-fit: cover;
+        }
+        .plant-name:hover .plant-image-preview {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.3s, visibility 0s;
+        }
+        
+        .hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-family: monospace;
+            color: var(--nature-green);
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud">MISSION: CHLORISS | ALT: <span id="alt">0</span> KM</div>
+
+    <div class="stars"></div>
+    <div class="earth-horizon" id="earth"></div>
+    
+    <div class="iss-station" id="iss">
+        <img src="https://pulsarinformatics.com/sites/all/themes/pulsar/img/CaseStudyPage/MainElements/iss.svg" alt="ISS">
+    </div>
+
+    <div class="final-image-container" id="final-image">
+        <img src="https://www.cite-espace.com/assets/uploads/logo-chloriss.jpg" alt="Logo ChlorISS">
+    </div>
+
+    <div class="rocket-world">
+        <div class="rocket-container" id="rocket">
+            <svg class="rocket-body" viewBox="0 0 100 250" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 10 C 35 60 30 100 30 180 L 70 180 C 70 100 65 60 50 10" fill="#f0f0f0" />
+                <path d="M30 140 L 15 190 L 30 180 Z" fill="#999" />
+                <path d="M70 140 L 85 190 L 70 180 Z" fill="#999" />
+                <rect x="35" y="180" width="30" height="10" fill="#222" />
+                <path d="M32 190 L 68 190 L 75 205 L 25 205 Z" fill="#111" />
+            </svg>
+            <div class="flame" id="flame"></div>
+        </div>
+    </div>
+
+    <div class="content">
+        <section>
+            <div class="card">
+                <h1>Mission εpsilon</h1>
+                <p>Dans le cadre de la mission εpsilon menée par Sophie Adenot (ESA) à bord de l’ISS, l’expérience éducative ChlorISS consiste à faire germer, simultanément dans l'espace et sur Terre, des graines d’<span class="plant-name">arabette des dames (Arabidopsis thaliana)<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Arabidopsis_thaliana.jpg/800px-Arabidopsis_thaliana.jpg" alt="Arabidopsis thaliana" class="plant-image-preview"></span> et de <span class="plant-name">mizuna (Brassica rapa japonica)<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Mizuna_greens.jpg/1024px-Mizuna_greens.jpg" alt="Mizuna" class="plant-image-preview"></span> afin d'étudier l'influence de la pesanteur et de la lumière sur la croissance des plantes.</p>
+            </div>
+        </section>
+        <section>
+            <div class="card">
+                <h1>Pourquoi un réseau ChlorISS ?</h1>
+                <p>Le réseau ChlorISS vise à accompagner les professeures et professeurs désirant mettre en œuvre l’expérience ChlorISS au sein de leur classe. Les activités proposées ont pour objectif de faciliter l’appropriation de l’expérience ChlorISS et sa mise en œuvre pédagogique.</p>
+                <div class="alert">
+                    Attention, les inscriptions auprès du CNES sont désormais closes. Néanmoins, il reste possible de <a href="https://ministere.magistere.apps.education.fr/mod/forum/discuss.php?d=98" target="_blank">mener l'expérience en autonomie</a>.
+                </div>
+            </div>
+        </section>
+        <section>
+            <div class="card">
+                <h1>Le réseau ChlorISS</h1>
+                <p>Cet espace partagé est structuré en sections donnant accès :</p>
+                <ul>
+                    <li>à une <a href="https://ministere.magistere.apps.education.fr/course/section.php?id=5910" target="_blank">présentation de l'expérience ChlorISS</a>, qui inclue notamment le processus de production des graines, une FAQ et un glossaire ;</li>
+                    <li>à un large éventail de <a href="https://ministere.magistere.apps.education.fr/course/section.php?id=5907" target="_blank">ressources pédagogiques</a> pour la mise en œuvre de l’expérience ChlorISS et son appropriation par les élèves ;</li>
+                    <li>à des <a href="https://ministere.magistere.apps.education.fr/course/section.php?id=5906" target="_blank">espaces d’échanges et de rencontres</a> (forum, salle de visioconférence) pour vous informer et partager vos questions, propositions, réussites et difficultés ;</li>
+                    <li>aux trois <a href="https://ministere.magistere.apps.education.fr/course/section.php?id=5908" target="_blank">webinaires nationaux</a>, et leur rediffusion ;</li>
+                    <li>à la mutualisation des résultats, au sein d'une section qui ouvrira ultérieurement.</li>
+                </ul>
+            </div>
+        </section>
+        <section style="min-height: 50vh;"><div class="card">
+                <h1>Communauté</h1>
+                <p>Afin de faire évoluer la communauté selon vos attentes et besoins, nous vous encourageons à répondre au <a href="https://ministere.magistere.apps.education.fr/mod/questionnaire/view.php?id=13891" target="_blank">questionnaire "Nouvel arrivant"</a>.</p>
+            </div></section>
+    </div>
+
+    <script>
+        const rocket = document.getElementById('rocket');
+        const flame = document.getElementById('flame');
+        const earth = document.getElementById('earth');
+        const iss = document.getElementById('iss');
+        const finalImage = document.getElementById('final-image');
+        const altDisplay = document.getElementById('alt');
+
+        window.addEventListener('scroll', () => {
+            const scrollPercent = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            // Altitude moyenne de l'ISS : 408 KM
+            altDisplay.textContent = Math.floor(scrollPercent * 408);
+
+            // 1. Terre
+            earth.style.transform = `translateY(${scrollPercent * 120}vh)`;
+            earth.style.opacity = 1 - (scrollPercent * 2.5);
+
+            // 2. Trajectoire de la fusée
+            const targetX = w * 0.15;
+            const targetY = -h * 0.65;
+            
+            const currentX = scrollPercent * targetX;
+            const currentY = scrollPercent * targetY;
+            
+            // Fusée conservant une taille visible (30%)
+            const rocketScale = 1 - (scrollPercent * 0.70);
+            const rocketRotate = scrollPercent * 35; 
+
+            rocket.style.transform = `translate(${currentX}px, ${currentY}px) scale(${rocketScale}) rotate(${rocketRotate}deg)`;
+
+            // 3. Docking de l'ISS
+            const issFixedX = w * 0.65; 
+            const issFixedY = h * 0.25;
+
+            if (scrollPercent > 0.05) {
+                const issOpacity = Math.min((scrollPercent - 0.05) * 4, 1);
+                const issScale = 0.25 + (scrollPercent - 0.05) * 0.55;
+                
+                const rocketBaseX = w / 2;
+                const rocketBaseY = h - (h * 0.05); 
+                
+                // Décalage final vers la droite encore un peu plus prononcé (+52px)
+                const offsetRight = scrollPercent * 52;
+                const offsetTop = scrollPercent * -15;
+
+                const finalDockX = rocketBaseX + targetX + offsetRight;
+                const finalDockY = (rocketBaseY + currentY) - (65 * rocketScale) + offsetTop;
+
+                // Interpolation vers la fusée
+                const currentIssX = issFixedX + (finalDockX - issFixedX) * scrollPercent;
+                const currentIssY = issFixedY + (finalDockY - issFixedY) * scrollPercent;
+
+                iss.style.opacity = issOpacity;
+                iss.style.transform = `translate(calc(${currentIssX}px - 50%), calc(${currentIssY}px - 50%)) scale(${issScale})`;
+            } else {
+                iss.style.opacity = 0;
+            }
+
+            // 4. Flamme
+            if (scrollPercent > 0.01 && scrollPercent < 0.85) {
+                flame.classList.add('active');
+                flame.style.opacity = scrollPercent < 0.6 ? 1 : 1 - ((scrollPercent - 0.6) * 4);
+                flame.style.height = scrollPercent < 0.2 ? '150px' : '40px';
+            } else {
+                flame.classList.remove('active');
+                flame.style.opacity = 0;
+            }
+
+            // 5. Image finale 
+            if (scrollPercent > 0.96) {
+                finalImage.style.opacity = 1;
+                finalImage.style.transform = `translate(-50%, -50%) scale(${0.8 + (scrollPercent - 0.96) * 10})`;
+            } else {
+                finalImage.style.opacity = 0;
+            }
+        });
+    </script>
+</body>
+</html>
